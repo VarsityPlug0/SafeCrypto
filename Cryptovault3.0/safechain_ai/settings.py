@@ -13,6 +13,10 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import sys
+
+# Add the parent directory to the Python path
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 # Load environment variables
 load_dotenv()
