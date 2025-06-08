@@ -7,9 +7,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='investmenttier',
-            name='updated_at',
-            field=models.DateTimeField(auto_now=True),
-        ),
+        # migrations.AddField(
+        #     model_name='investmenttier',
+        #     name='updated_at',
+        #     field=models.DateTimeField(auto_now=True),
+        # ),
     ] 
