@@ -1,23 +1,39 @@
+from django.contrib import admin
 from django.contrib.admin import AdminSite
+from .models import (
+    CustomUser, InvestmentTier, Investment, Deposit, Withdrawal,
+    Wallet, Referral, IPAddress, ReferralReward, DailySpecial,
+    Backup, AdminActivityLog
+)
 
 class MyAdminSite(AdminSite):
-    def has_permission(self, request):
-        """
-        Return True if the given HttpRequest has permission to view this admin site.
-        """
-        print(f"--- CUSTOM ADMIN PERMISSION CHECK for user: {request.user.email} ---")
-        print(f"  Is Active: {request.user.is_active}")
-        print(f"  Is Staff: {request.user.is_staff}")
-        print(f"  Is Superuser: {request.user.is_superuser}")
-        
-        # Superusers should always have permission
-        if request.user.is_superuser:
-            print("  User is a superuser, granting access.")
-            return True
-            
-        # Standard staff check
-        permission = request.user.is_active and request.user.is_staff
-        print(f"  Final permission: {permission}")
-        return permission
+    pass
 
-admin_site = MyAdminSite(name='myadmin') 
+admin_site = MyAdminSite(name='myadmin')
+
+# A simple ModelAdmin to display the models
+class CustomUserAdmin(admin.ModelAdmin):
+    list_display = ('email', 'username', 'level', 'is_staff', 'is_superuser')
+
+class InvestmentAdmin(admin.ModelAdmin):
+    list_display = ('user', 'tier', 'amount', 'is_active', 'end_date')
+
+class DepositAdmin(admin.ModelAdmin):
+    list_display = ('user', 'amount', 'status', 'created_at')
+
+class WithdrawalAdmin(admin.ModelAdmin):
+    list_display = ('user', 'amount', 'status', 'created_at')
+
+# Register models with the custom admin site
+admin_site.register(CustomUser, CustomUserAdmin)
+admin_site.register(InvestmentTier)
+admin_site.register(Investment, InvestmentAdmin)
+admin_site.register(Deposit, DepositAdmin)
+admin_site.register(Withdrawal, WithdrawalAdmin)
+admin_site.register(Wallet)
+admin_site.register(Referral)
+admin_site.register(IPAddress)
+admin_site.register(ReferralReward)
+admin_site.register(DailySpecial)
+admin_site.register(Backup)
+admin_site.register(AdminActivityLog) 
