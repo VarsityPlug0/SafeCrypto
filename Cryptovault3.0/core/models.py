@@ -98,8 +98,9 @@ class Investment(models.Model):
         return timezone.now() >= self.end_date
 
     def save(self, *args, **kwargs):
-        # Update user's total_invested when creating new investment
+        # Set end_date when creating a new investment
         if not self.pk:  # Only on creation
+            self.end_date = self.start_date + timezone.timedelta(days=self.tier.duration_days)
             self.user.total_invested += self.amount
             self.user.update_level()
         
