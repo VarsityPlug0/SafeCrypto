@@ -375,17 +375,17 @@ def wallet_view(request):
             'created_at': investment.created_at,
             'transaction_type': 'investment',
             'amount': investment.amount,
-            'status': 'completed',
+            'status': 'Active' if investment.is_active else 'Completed',
             'description': f'Investment in {investment.tier.name}'
         })
         
         # Add returns for completed investments
-        if not investment.is_active:
+        if not investment.is_active and investment.end_date:
             transactions.append({
                 'created_at': investment.end_date,
                 'transaction_type': 'return',
                 'amount': investment.return_amount,
-                'status': 'completed',
+                'status': 'Completed',
                 'description': f'Return from {investment.tier.name}'
             })
     
