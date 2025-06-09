@@ -87,7 +87,7 @@ class Investment(models.Model):
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     return_amount = models.DecimalField(max_digits=12, decimal_places=2)
     start_date = models.DateTimeField(auto_now_add=True)
-    end_date = models.DateTimeField()
+    end_date = models.DateTimeField(null=True, blank=True)
     expires_at = models.DateTimeField(default=timezone.now)  # Added default value
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
