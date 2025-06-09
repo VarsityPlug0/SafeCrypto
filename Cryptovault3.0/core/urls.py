@@ -20,13 +20,15 @@ urlpatterns = [
     path('delete-account/', views.delete_account, name='delete_account'),
     path('logout/', views.logout_view, name='logout'),
     path('deposit/', views.deposit_view, name='deposit'),
-    path('withdrawal/', views.withdrawal_view, name='withdrawal'),
+    path('voucher-deposit/', views.voucher_deposit, name='voucher_deposit'),
+    path('withdraw/', views.withdraw_view, name='withdraw'),
     path('newsletter/subscribe/', views.newsletter_subscribe, name='newsletter_subscribe'),
     path('terms/', views.terms_view, name='terms'),
     path('privacy/', views.privacy_view, name='privacy'),
     path('contact/', views.contact_view, name='contact'),
     path('portfolio/', views.portfolio_view, name='portfolio'),
     path('tutorial/', views.tutorial_view, name='tutorial'),
+    path('support/', views.support_view, name='support'),
 
     # Password reset URLs
     path('password_reset/', auth_views.PasswordResetView.as_view(template_name='core/password_reset.html'), name='password_reset'),

@@ -13,6 +13,8 @@ from django.urls import reverse
 import random
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Count
+from .forms import VoucherForm
+from .models import Voucher
 
 # Home view
 # Landing page for the application
@@ -995,3 +997,21 @@ def delete_account(request):
         return redirect('home')
     
     return redirect('profile')
+
+@login_required
+def voucher_deposit(request):
+    if request.method == 'POST':
+        form = VoucherForm(request.POST, request.FILES)
+        if form.is_valid():
+            voucher = form.save(commit=False)
+            voucher.user = request.user
+            voucher.save()
+            messages.success(request, 'Your voucher has been submitted and is pending approval.')
+            return redirect('dashboard')
+    else:
+        form = VoucherForm()
+    return render(request, 'core/voucher_deposit.html', {'form': form})
+
+def support_view(request):
+    pass
+    # ... existing code ...
