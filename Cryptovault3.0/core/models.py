@@ -134,6 +134,24 @@ class Deposit(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     admin_notes = models.TextField(blank=True)  # Admin notes for approval/rejection
 
+    def save(self, *args, **kwargs):
+        # If this is an update
+        if self.pk:
+            try:
+                # Get the old instance from the database
+                old_instance = Deposit.objects.get(pk=self.pk)
+                # If the status is changing from something else to 'approved'
+                if old_instance.status != 'approved' and self.status == 'approved':
+                    # Get or create the user's wallet and update the balance
+                    wallet, created = Wallet.objects.get_or_create(user=self.user)
+                    wallet.balance += self.amount
+                    wallet.save()
+            except Deposit.DoesNotExist:
+                # This should not happen if self.pk is set, but handle it just in case
+                pass
+        
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.user.username} - R{self.amount} ({self.status})"
 
