@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
-from .models import InvestmentTier, Investment, Wallet, Referral, IPAddress, CustomUser, Deposit, ReferralReward, Withdrawal, DailySpecial
+from .models import InvestmentTier, Investment, Wallet, Referral, IPAddress, CustomUser, Deposit, ReferralReward, Withdrawal, DailySpecial, Voucher
 from django.contrib import messages
 from django.utils import timezone
 from django.core.files.storage import FileSystemStorage
@@ -14,7 +14,6 @@ import random
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Count
 from .forms import VoucherForm
-from .models import Voucher
 
 # Home view
 # Landing page for the application
@@ -345,6 +344,7 @@ def wallet_view(request):
     deposits = Deposit.objects.filter(user=user).order_by('-created_at')
     withdrawals = Withdrawal.objects.filter(user=user).order_by('-created_at')
     investments = Investment.objects.filter(user=user).order_by('-created_at')
+    vouchers = Voucher.objects.filter(user=user).order_by('-created_at')
     
     # Combine all transactions into a single list
     transactions = []
@@ -367,6 +367,16 @@ def wallet_view(request):
             'amount': withdrawal.amount,
             'status': withdrawal.status,
             'description': f'Withdrawal via {withdrawal.payment_method}'
+        })
+    
+    # Add voucher deposits
+    for voucher in vouchers:
+        transactions.append({
+            'created_at': voucher.created_at,
+            'transaction_type': 'Voucher Deposit',
+            'amount': voucher.amount,
+            'status': voucher.status,
+            'description': 'Voucher Deposit'
         })
     
     # Add investments
