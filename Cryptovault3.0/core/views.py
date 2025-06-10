@@ -14,6 +14,7 @@ import random
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Count
 from .forms import VoucherForm
+import logging
 
 # Home view
 # Landing page for the application
@@ -336,77 +337,84 @@ def invest_view(request, tier_id):
 # Shows wallet balance and withdrawal option
 @login_required
 def wallet_view(request):
-    user = request.user
-    # Get or create wallet for the user
-    wallet, created = Wallet.objects.get_or_create(user=user)
-    
-    # Get all transactions
-    deposits = Deposit.objects.filter(user=user).order_by('-created_at')
-    withdrawals = Withdrawal.objects.filter(user=user).order_by('-created_at')
-    investments = Investment.objects.filter(user=user).order_by('-created_at')
-    vouchers = Voucher.objects.filter(user=user).order_by('-created_at')
-    
-    # Combine all transactions into a single list
-    transactions = []
-    
-    # Add deposits
-    for deposit in deposits:
-        transactions.append({
-            'created_at': deposit.created_at,
-            'transaction_type': 'deposit',
-            'amount': deposit.amount,
-            'status': deposit.status,
-            'description': f'Deposit via {deposit.payment_method}'
-        })
-    
-    # Add withdrawals
-    for withdrawal in withdrawals:
-        transactions.append({
-            'created_at': withdrawal.created_at,
-            'transaction_type': 'withdrawal',
-            'amount': withdrawal.amount,
-            'status': withdrawal.status,
-            'description': f'Withdrawal via {withdrawal.payment_method}'
-        })
-    
-    # Add voucher deposits
-    for voucher in vouchers:
-        transactions.append({
-            'created_at': voucher.created_at,
-            'transaction_type': 'Voucher Deposit',
-            'amount': voucher.amount,
-            'status': voucher.status,
-            'description': 'Voucher Deposit'
-        })
-    
-    # Add investments
-    for investment in investments:
-        transactions.append({
-            'created_at': investment.created_at,
-            'transaction_type': 'investment',
-            'amount': investment.amount,
-            'status': 'Active' if investment.is_active else 'Completed',
-            'description': f'Investment in {investment.tier.name}'
-        })
+    try:
+        user = request.user
+        # Get or create wallet for the user
+        wallet, created = Wallet.objects.get_or_create(user=user)
         
-        # Add returns for completed investments
-        if not investment.is_active and investment.end_date:
+        # Get all transactions
+        deposits = Deposit.objects.filter(user=user).order_by('-created_at')
+        withdrawals = Withdrawal.objects.filter(user=user).order_by('-created_at')
+        investments = Investment.objects.filter(user=user).order_by('-created_at')
+        vouchers = Voucher.objects.filter(user=user).order_by('-created_at')
+        
+        # Combine all transactions into a single list
+        transactions = []
+        
+        # Add deposits
+        for deposit in deposits:
             transactions.append({
-                'created_at': investment.end_date,
-                'transaction_type': 'return',
-                'amount': investment.return_amount,
-                'status': 'Completed',
-                'description': f'Return from {investment.tier.name}'
+                'created_at': deposit.created_at,
+                'transaction_type': 'deposit',
+                'amount': deposit.amount,
+                'status': deposit.status,
+                'description': f'Deposit via {deposit.payment_method}'
             })
-    
-    # Sort transactions by date (newest first)
-    transactions.sort(key=lambda x: x['created_at'], reverse=True)
-    
-    context = {
-        'wallet': wallet,
-        'transactions': transactions,
-    }
-    return render(request, 'core/wallet.html', context)
+        
+        # Add withdrawals
+        for withdrawal in withdrawals:
+            transactions.append({
+                'created_at': withdrawal.created_at,
+                'transaction_type': 'withdrawal',
+                'amount': withdrawal.amount,
+                'status': withdrawal.status,
+                'description': f'Withdrawal via {withdrawal.payment_method}'
+            })
+        
+        # Add voucher deposits
+        for voucher in vouchers:
+            transactions.append({
+                'created_at': voucher.created_at,
+                'transaction_type': 'Voucher Deposit',
+                'amount': voucher.amount,
+                'status': voucher.status,
+                'description': 'Voucher Deposit'
+            })
+
+        # Add investments
+        for investment in investments:
+            transactions.append({
+                'created_at': investment.created_at,
+                'transaction_type': 'investment',
+                'amount': investment.amount,
+                'status': 'Active' if investment.is_active else 'Completed',
+                'description': f'Investment in {investment.tier.name}'
+            })
+            
+            # Add returns for completed investments
+            if not investment.is_active and investment.end_date:
+                transactions.append({
+                    'created_at': investment.end_date,
+                    'transaction_type': 'return',
+                    'amount': investment.return_amount,
+                    'status': 'Completed',
+                    'description': f'Return from {investment.tier.name}'
+                })
+        
+        # Sort transactions by date (newest first)
+        transactions.sort(key=lambda x: x['created_at'], reverse=True)
+        
+        context = {
+            'wallet': wallet,
+            'transactions': transactions,
+        }
+        return render(request, 'core/wallet.html', context)
+    except Exception as e:
+        logging.error(f"Error in wallet_view for user {request.user.email}: {e}", exc_info=True)
+        # Optionally, you can render an error page or return a generic error response
+        # For now, let's re-raise to see the error in production logs,
+        # but in a real-world scenario, you might handle it differently.
+        raise
 
 # Referral view
 # Shows referral link and stats
@@ -700,7 +708,6 @@ def feed_view(request):
         
     except Exception as e:
         # Log the error for debugging
-        import logging
         logger = logging.getLogger(__name__)
         logger.error(f"Error in feed_view: {str(e)}", exc_info=True)
         
