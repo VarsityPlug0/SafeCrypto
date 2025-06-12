@@ -294,8 +294,10 @@ def invest_view(request, tier_id):
             messages.error(request, f'You need to be level {tier.min_level} to invest in this tier.')
             return redirect('tiers')
         
+        # Get or create wallet for the user
+        wallet, created = Wallet.objects.get_or_create(user=user)
+        
         # Check if user has sufficient balance
-        wallet = Wallet.objects.get(user=user)
         if wallet.balance < tier.amount:
             messages.error(request, 'Insufficient balance. Please make a deposit first.')
             return redirect('tiers')
@@ -312,29 +314,41 @@ def invest_view(request, tier_id):
             return redirect('tiers')
         
         if request.method == 'POST':
-            # Create investment
-            end_date = timezone.now() + timedelta(days=tier.duration_days)
-            investment = Investment.objects.create(
-                user=user,
-                tier=tier,
-                amount=tier.amount,
-                return_amount=tier.return_amount,
-                end_date=end_date,
-                expires_at=end_date  # Set expires_at to the same value as end_date
-            )
-            
-            # Update wallet balance
-            wallet.balance -= tier.amount
-            wallet.save()
-            
-            messages.success(request, f'Successfully invested R{tier.amount} in {tier.name}.')
-            return redirect('dashboard')
+            try:
+                # Create investment
+                end_date = timezone.now() + timedelta(days=tier.duration_days)
+                investment = Investment.objects.create(
+                    user=user,
+                    tier=tier,
+                    amount=tier.amount,
+                    return_amount=tier.return_amount,
+                    end_date=end_date,
+                    expires_at=end_date  # Set expires_at to the same value as end_date
+                )
+                
+                # Update wallet balance - ensure we're using a new query to get the latest data
+                wallet = Wallet.objects.get(user=user)
+                wallet.balance -= tier.amount
+                wallet.save()
+                
+                messages.success(request, f'Successfully invested R{tier.amount} in {tier.name}.')
+                return redirect('dashboard')
+            except Exception as e:
+                # Log the error for debugging
+                print(f"Error processing investment: {str(e)}")
+                messages.error(request, f'An error occurred while processing your investment: {str(e)}')
+                return render(request, 'core/invest.html', {'tier': tier, 'error': str(e)})
         
         # For GET request, show the investment confirmation page
         return render(request, 'core/invest.html', {'tier': tier})
         
     except InvestmentTier.DoesNotExist:
         messages.error(request, 'Invalid investment tier.')
+        return redirect('tiers')
+    except Exception as e:
+        # Catch any other exceptions
+        print(f"Unexpected error in invest_view: {str(e)}")
+        messages.error(request, f'An unexpected error occurred: {str(e)}')
         return redirect('tiers')
 
 # Wallet view
