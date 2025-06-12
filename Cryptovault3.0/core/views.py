@@ -311,23 +311,27 @@ def invest_view(request, tier_id):
             messages.error(request, f'You already have an active investment in {tier.name}.')
             return redirect('tiers')
         
-        # Create investment
-        end_date = timezone.now() + timedelta(days=tier.duration_days)
-        investment = Investment.objects.create(
-            user=user,
-            tier=tier,
-            amount=tier.amount,
-            return_amount=tier.return_amount,
-            end_date=end_date,
-            expires_at=end_date  # Set expires_at to the same value as end_date
-        )
+        if request.method == 'POST':
+            # Create investment
+            end_date = timezone.now() + timedelta(days=tier.duration_days)
+            investment = Investment.objects.create(
+                user=user,
+                tier=tier,
+                amount=tier.amount,
+                return_amount=tier.return_amount,
+                end_date=end_date,
+                expires_at=end_date  # Set expires_at to the same value as end_date
+            )
+            
+            # Update wallet balance
+            wallet.balance -= tier.amount
+            wallet.save()
+            
+            messages.success(request, f'Successfully invested R{tier.amount} in {tier.name}.')
+            return redirect('dashboard')
         
-        # Update wallet balance
-        wallet.balance -= tier.amount
-        wallet.save()
-        
-        messages.success(request, f'Successfully invested R{tier.amount} in {tier.name}.')
-        return redirect('dashboard')
+        # For GET request, show the investment confirmation page
+        return render(request, 'core/invest.html', {'tier': tier})
         
     except InvestmentTier.DoesNotExist:
         messages.error(request, 'Invalid investment tier.')
