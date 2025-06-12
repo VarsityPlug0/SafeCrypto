@@ -95,17 +95,21 @@ class Investment(models.Model):
 
     def is_complete(self):
         """Check if the investment period is complete"""
-        return timezone.now() >= self.end_date
+        return self.end_date is not None and timezone.now() >= self.end_date
 
     def save(self, *args, **kwargs):
         # Set end_date when creating a new investment
         if not self.pk:  # Only on creation
+            # Ensure start_date is set if it's None
+            if not self.start_date:
+                self.start_date = timezone.now()
+            # Calculate end_date safely
             self.end_date = self.start_date + timezone.timedelta(days=self.tier.duration_days)
             self.user.total_invested += self.amount
             self.user.update_level()
         
-        # Check if investment period is complete
-        if self.is_complete() and self.is_active:
+        # Check if investment period is complete (only if end_date exists)
+        if self.end_date and self.is_active and timezone.now() >= self.end_date:
             self.is_active = False
         
         super().save(*args, **kwargs)

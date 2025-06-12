@@ -316,12 +316,14 @@ def invest_view(request, tier_id):
         if request.method == 'POST':
             try:
                 # Create investment
-                end_date = timezone.now() + timedelta(days=tier.duration_days)
+                start_date = timezone.now()
+                end_date = start_date + timedelta(days=tier.duration_days)
                 investment = Investment.objects.create(
                     user=user,
                     tier=tier,
                     amount=tier.amount,
                     return_amount=tier.return_amount,
+                    start_date=start_date,  # Explicitly set start_date
                     end_date=end_date,
                     expires_at=end_date  # Set expires_at to the same value as end_date
                 )
