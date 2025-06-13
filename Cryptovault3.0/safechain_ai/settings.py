@@ -105,16 +105,15 @@ DATABASES = {
     }
 }
 
-# Use PostgreSQL in production
-if not DEBUG:
-    DATABASE_URL = os.getenv('DATABASE_URL')
-    if DATABASE_URL:
-        import dj_database_url
-        DATABASES['default'] = dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
+# Use PostgreSQL if DATABASE_URL is provided
+DATABASE_URL = os.getenv('DATABASE_URL')
+if DATABASE_URL:
+    import dj_database_url
+    DATABASES['default'] = dj_database_url.config(
+        default=DATABASE_URL,
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 
 
 # Password validation
