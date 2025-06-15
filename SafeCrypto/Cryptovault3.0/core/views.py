@@ -551,20 +551,20 @@ def deposit_view(request):
 @login_required
 def withdrawal_view(request):
     if request.method == 'POST':
-        amount = Decimal(request.POST.get('amount'))
-        payment_method = request.POST.get('payment_method')
-        
-        if amount < 50:
-            messages.error(request, 'Minimum withdrawal amount is R50.')
-            return redirect('withdraw')
-        
-        # Check if user has sufficient balance
-        wallet = Wallet.objects.get(user=request.user)
-        if wallet.balance < amount:
-            messages.error(request, 'Insufficient balance for withdrawal.')
-            return redirect('withdraw')
-        
         try:
+            amount = Decimal(request.POST.get('amount', 0))
+            payment_method = request.POST.get('payment_method')
+            
+            if amount < 50:
+                messages.error(request, 'Minimum withdrawal amount is R50.')
+                return redirect('withdraw')
+            
+            # Check if user has sufficient balance
+            wallet = Wallet.objects.get(user=request.user)
+            if wallet.balance < amount:
+                messages.error(request, f'Insufficient balance. Your current balance is R{wallet.balance:.2f}')
+                return redirect('withdraw')
+            
             withdrawal_data = {
                 'user': request.user,
                 'amount': amount,
@@ -584,8 +584,11 @@ def withdrawal_view(request):
             Withdrawal.objects.create(**withdrawal_data)
             messages.success(request, 'Withdrawal request submitted successfully. Please wait for approval.')
             return redirect('wallet')
-        except ValueError as e:
-            messages.error(request, str(e))
+        except (ValueError, TypeError) as e:
+            messages.error(request, 'Invalid amount entered. Please enter a valid number.')
+            return redirect('withdraw')
+        except Exception as e:
+            messages.error(request, 'An error occurred while processing your withdrawal. Please try again.')
             return redirect('withdraw')
         
     return render(request, 'core/withdrawal.html')
