@@ -5,15 +5,16 @@ set -o errexit
 # Install Python dependencies
 pip install -r requirements.txt
 
-# Create necessary directories
-mkdir -p media/deposit_proofs
-mkdir -p media/withdrawal_proofs
-mkdir -p media/profile_pictures
-
 # Collect static files
 python manage.py collectstatic --no-input
 
-# Run database migrations
+# Create media directories with proper permissions
+mkdir -p media/deposit_proofs
+mkdir -p media/profile_pics
+mkdir -p media/withdrawal_proofs
+chmod -R 755 media
+
+# Apply database migrations
 python manage.py migrate
 
 # Create superuser if it doesn't exist

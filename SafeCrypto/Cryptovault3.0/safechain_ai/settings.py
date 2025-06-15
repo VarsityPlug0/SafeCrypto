@@ -209,17 +209,16 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Configure storage for production
-if not DEBUG:
-    # Use WhiteNoise for static files
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-    
-    # Use local file system for media files
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-    
-    # Ensure media directory exists
-    if not os.path.exists(MEDIA_ROOT):
-        os.makedirs(MEDIA_ROOT)
+# Configure WhiteNoise for static files
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Configure media file storage
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+
+# Ensure media directories exist
+os.makedirs(os.path.join(MEDIA_ROOT, 'deposit_proofs'), exist_ok=True)
+os.makedirs(os.path.join(MEDIA_ROOT, 'profile_pics'), exist_ok=True)
+os.makedirs(os.path.join(MEDIA_ROOT, 'withdrawal_proofs'), exist_ok=True)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

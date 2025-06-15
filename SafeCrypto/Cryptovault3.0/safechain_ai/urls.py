@@ -18,9 +18,10 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.http import HttpResponse
-from core import views
-from core.admin import admin_site  # Import our custom admin site
+from django.views.static import serve
+from .views import health_check
+from .admin import admin_site
+from . import views
 
 def health_check(request):
     return HttpResponse("OK")
@@ -35,3 +36,8 @@ urlpatterns = [
 # Serve media files in development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+else:
+    # Serve media files in production
+    urlpatterns += [
+        path('media/<path:path>', serve, {'document_root': settings.MEDIA_ROOT}),
+    ]
