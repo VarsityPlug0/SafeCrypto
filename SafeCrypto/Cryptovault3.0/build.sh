@@ -5,6 +5,11 @@ set -o errexit
 # Install Python dependencies
 pip install -r requirements.txt
 
+# Create necessary directories
+mkdir -p media/deposit_proofs
+mkdir -p media/withdrawal_proofs
+mkdir -p media/profile_pictures
+
 # Collect static files
 python manage.py collectstatic --no-input
 
