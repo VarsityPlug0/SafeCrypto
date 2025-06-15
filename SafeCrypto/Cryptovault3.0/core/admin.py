@@ -42,6 +42,12 @@ class DepositAdmin(admin.ModelAdmin):
 class WithdrawalAdmin(admin.ModelAdmin):
     list_display = ('user', 'amount', 'status', 'created_at')
 
+class WalletAdmin(admin.ModelAdmin):
+    list_display = ('user', 'balance', 'created_at', 'updated_at')
+    search_fields = ('user__username', 'user__email')
+    list_filter = ('created_at', 'updated_at')
+    ordering = ('-created_at',)
+
 class VoucherAdmin(admin.ModelAdmin):
     list_display = ('user', 'amount', 'status', 'created_at', 'display_voucher')
     list_filter = ('status',)
@@ -73,7 +79,7 @@ admin_site.register(InvestmentTier)
 admin_site.register(Investment, InvestmentAdmin)
 admin_site.register(Deposit, DepositAdmin)
 admin_site.register(Withdrawal, WithdrawalAdmin)
-admin_site.register(Wallet)
+admin_site.register(Wallet, WalletAdmin)
 admin_site.register(Referral)
 admin_site.register(IPAddress)
 admin_site.register(ReferralReward)
